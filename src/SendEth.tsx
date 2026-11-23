@@ -10,7 +10,7 @@ function SendEth  ({refetchBalance}) {
 
     
 
-    const {data:hash, error, mutate} = useSendTransaction();
+    const {data:hash, error, mutate, status} = useSendTransaction();
 
     const handleSubmit = (event : React.SubmitEvent<HTMLFormElement>) => {
 
@@ -21,11 +21,8 @@ function SendEth  ({refetchBalance}) {
         const to  = formData.get("address") as `0x${string}`;
         const value = formData.get("value") as string;
 
-        console.log(value , "value")
 
         mutate({to , value : parseEther(value)});
-
-        console.log(hash , useWaitForTransactionReceipt , "hash");
    
     }
 
@@ -39,19 +36,18 @@ function SendEth  ({refetchBalance}) {
         async function handleState () {
             if(isConfirmed) {
                 await refetchBalance();
-                console.log(refetchBalance());
             }
         }
         handleState();
-    },[isConfirmed])
+    },[isConfirmed , refetchBalance])
 
     
     return (
         <>
             <form onSubmit = {handleSubmit}>
                 <input type="text" name = "address" required/>
-                <input type="number"  name = "value" required/>
-                <button type="submit" disabled={isConfirming}>Submit</button>
+                <input type="number" step="any"  name = "value" required/>
+                <button type="submit" disabled={isConfirming || status === "pending"  }>{ isConfirming || status === "pending" ?  "transaction proceed" : "Submit"}</button>
             </form>
 
             <div>
