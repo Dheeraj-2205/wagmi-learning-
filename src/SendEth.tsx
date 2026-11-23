@@ -1,10 +1,14 @@
 
-import {useSendTransaction,type BaseError , useWaitForTransactionReceipt ,useBalance} from "wagmi";
+import {useSendTransaction,type BaseError , useWaitForTransactionReceipt } from "wagmi";
 import { parseEther } from 'viem'
 
+import {useEffect} from "react";
 
 
-function SendEth () {
+function SendEth  ({refetchBalance}) {
+
+
+    
 
     const {data:hash, error, mutate} = useSendTransaction();
 
@@ -28,7 +32,19 @@ function SendEth () {
     const {isLoading : isConfirming , isSuccess: isConfirmed} = useWaitForTransactionReceipt({
         hash,
     });
-    
+
+
+
+    useEffect(() =>{
+        async function handleState () {
+            if(isConfirmed) {
+                await refetchBalance();
+                console.log(refetchBalance());
+            }
+        }
+        handleState();
+    },[isConfirmed])
+
     
     return (
         <>
