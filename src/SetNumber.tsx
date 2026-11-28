@@ -1,11 +1,25 @@
-import {useWriteContract, useWaitForTransactionReceipt ,type BaseError} from "wagmi";
+import {useWriteContract, useWaitForTransactionReceipt ,type BaseError, useReadContract} from "wagmi";
 import {CONTRACT_ADDRESS , ABI} from "./contract.ts";
 import { sepolia } from "viem/chains";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 
 function SetNumber() {
 
     const {writeContract, data:hash, isPending , error} = useWriteContract();
+    const {queryKey} = useReadContract({
+        abi: ABI,
+        address : CONTRACT_ADDRESS,
+        functionName : "retrieve",
+        chainId : sepolia.id
+    })
+    const queryClient = useQueryClient();
+
+
+    console.log(queryClient);
+    console.log(queryKey);
+
 
     const handleSubmit= (event: React.SubmitEvent<HTMLFormElement>) =>{
         event.preventDefault();
@@ -29,7 +43,11 @@ function SetNumber() {
 
     const {isLoading , isSuccess} = useWaitForTransactionReceipt({hash});
 
-    console.log(isLoading ,isSuccess ,  "isLoading");
+    useEffect(() =>{
+        if(isSuccess){
+            queryClient.invalidateQueries({queryKey})
+        }
+    },[queryClient , queryKey, isSuccess])
 
     return (
         <div>
@@ -41,7 +59,7 @@ function SetNumber() {
             {isLoading &&<p> loading ....</p>}
             {isSuccess && <p>success .....</p>}
             {error && ( <div>Errors : {(error as BaseError).shortMessage || error.message}</div>)}
-            {hash && <p>hash :- { hash}</p>}
+            {hash && <p>hash :- {hash}</p>}
 
 
         </div>
